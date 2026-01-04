@@ -488,10 +488,15 @@ window.addEventListener('mousedown', () => {
   spawnShotLine();
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const targets = monsters.map((monster) => monster.mesh);
-  const hits = raycaster.intersectObjects(targets, false);
+  const hits = raycaster.intersectObjects(targets, true); // true로 변경하여 자식 객체도 검사
   if (hits.length > 0) {
     const hit = hits[0].object;
-    const index = monsters.findIndex((monster) => monster.mesh === hit);
+    // hit된 객체가 그룹 내부의 자식일 수 있으므로, 부모를 찾아야 함
+    let targetMesh = hit;
+    while (targetMesh.parent && !monsters.find(monster => monster.mesh === targetMesh)) {
+      targetMesh = targetMesh.parent;
+    }
+    const index = monsters.findIndex((monster) => monster.mesh === targetMesh);
     if (index >= 0) {
       monsterGroup.remove(monsters[index].mesh);
       monsters.splice(index, 1);

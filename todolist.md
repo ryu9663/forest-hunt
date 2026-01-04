@@ -1,7 +1,20 @@
-# TODO
-- [x] Project scaffold (HTML/CSS/JS) and basic Three.js scene
-- [x] Player controls (WASD + mouse look with pointer lock)
-- [x] Environment: ground, river, trees, rocks, clouds
-- [x] Monsters: spawn, movement, and simple hunting via click
-- [x] HUD (health/score) and instructions
-- [ ] Quick smoke test in browser
+# 할 일 목록
+
+- [x] 프로젝트 기본 구조 (HTML/CSS/JS) 및 기본 Three.js 장면
+- [x] 플레이어 조작 (WASD + 포인터 잠금 마우스 시점)
+  - [x] 사용자 화면 기준으로 W키가 전진 (앞으로 이동)
+  - [x] 사용자 화면 기준으로 S키가 후진 (뒤로 이동)
+  - [x] 사용자 화면 기준으로 A키가 좌측이동 (왼쪽으로 이동)
+  - [x] 사용자 화면 기준으로 D키가 우측이동 (오른쪽으로 이동)
+- [x] 환경: 지면, 강, 나무, 바위, 구름
+- [x] 몬스터: 스폰, 이동, 클릭으로 간단한 사냥
+- [x] HUD (체력/점수) 및 게임 설명
+
+## 몬스터 개선 작업
+
+- [x] 동물형 몬스터 모델 생성 (몸통, 머리, 다리, 꼬리)
+- [ ] 랜덤 크기 시스템 구현
+- [ ] 플레이어 감지 시 위협적인 자세 변경
+- [ ] 색상 및 재질 개선
+- [ ] 애니메이션 효과 추가
+- [ ] 나무, 바위, 몬스터 등의 물체를 통과하지 못하고 강을 지나갈때는 몬스터와 유저의 속도가 느려진다.

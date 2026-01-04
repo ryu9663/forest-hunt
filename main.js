@@ -282,12 +282,56 @@ const monsters = [];
 const monsterCount = 10;
 
 function createMonster() {
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1.4, 2.2, 1.4),
+  const group = new THREE.Group();
+  
+  // 몸통 (body)
+  const body = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.4, 1.2, 4, 8),
     new THREE.MeshStandardMaterial({ color: 0x8d1b1b, emissive: 0x3a0808 })
   );
-  mesh.position.y = 1.1;
-  return { mesh, velocity: new THREE.Vector3() };
+  body.position.set(0, 0.8, 0);
+  body.rotation.z = Math.PI / 2; // 몸통을 가로로 눕힘
+  
+  // 머리 (head)
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.35, 8, 8),
+    new THREE.MeshStandardMaterial({ color: 0xa52525, emissive: 0x4a0a0a })
+  );
+  head.position.set(0.8, 0.9, 0);
+  
+  // 눈 (eyes)
+  const eyeGeometry = new THREE.SphereGeometry(0.08, 6, 6);
+  const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0x220000 });
+  const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+  leftEye.position.set(1.0, 1.0, 0.15);
+  const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+  rightEye.position.set(1.0, 1.0, -0.15);
+  
+  // 다리 (legs)
+  const legGeometry = new THREE.CylinderGeometry(0.12, 0.15, 0.7, 6);
+  const legMaterial = new THREE.MeshStandardMaterial({ color: 0x6d1515, emissive: 0x2a0606 });
+  
+  const frontLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+  frontLeftLeg.position.set(0.4, 0.35, 0.3);
+  const frontRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+  frontRightLeg.position.set(0.4, 0.35, -0.3);
+  const backLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+  backLeftLeg.position.set(-0.4, 0.35, 0.3);
+  const backRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+  backRightLeg.position.set(-0.4, 0.35, -0.3);
+  
+  // 꼬리 (tail)
+  const tail = new THREE.Mesh(
+    new THREE.ConeGeometry(0.1, 0.8, 6),
+    new THREE.MeshStandardMaterial({ color: 0x7d1a1a, emissive: 0x350707 })
+  );
+  tail.position.set(-0.9, 0.8, 0);
+  tail.rotation.z = Math.PI / 2; // 꼬리를 뒤쪽으로 향하게 함
+  
+  group.add(body, head, leftEye, rightEye, frontLeftLeg, frontRightLeg, backLeftLeg, backRightLeg, tail);
+  group.position.y = 0.7;
+  
+  return { mesh: group, velocity: new THREE.Vector3() };
 }
 
 function spawnMonsters() {

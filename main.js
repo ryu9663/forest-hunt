@@ -331,7 +331,11 @@ function createMonster() {
   group.add(body, head, leftEye, rightEye, frontLeftLeg, frontRightLeg, backLeftLeg, backRightLeg, tail);
   group.position.y = 0.7;
   
-  return { mesh: group, velocity: new THREE.Vector3() };
+  // 랜덤 크기 시스템 (0.6 ~ 1.5배 크기)
+  const randomScale = 0.6 + Math.random() * 0.9;
+  group.scale.setScalar(randomScale);
+  
+  return { mesh: group, velocity: new THREE.Vector3(), scale: randomScale };
 }
 
 function spawnMonsters() {
@@ -398,21 +402,28 @@ function updateMonsters(delta) {
     const target = new THREE.Vector3(camera.position.x, 0, camera.position.z);
     const pos = new THREE.Vector3(monster.mesh.position.x, 0, monster.mesh.position.z);
     const distance = pos.distanceTo(target);
+    const monsterScale = monster.scale || 1.0;
 
     if (distance < 24) {
-      monster.velocity.copy(target.sub(pos).normalize().multiplyScalar(4.2));
+      // 큰 몬스터일수록 빠르고, 작은 몬스터는 느리게
+      const speed = 3.5 + (monsterScale - 0.8) * 2.0;
+      monster.velocity.copy(target.sub(pos).normalize().multiplyScalar(speed));
       monster.mesh.lookAt(camera.position.x, monster.mesh.position.y, camera.position.z);
     } else {
       if (Math.random() < 0.02) {
         const angle = Math.random() * Math.PI * 2;
-        monster.velocity.set(Math.cos(angle), 0, Math.sin(angle)).multiplyScalar(2.2);
+        const wanderSpeed = 1.8 + (monsterScale - 0.8) * 1.0;
+        monster.velocity.set(Math.cos(angle), 0, Math.sin(angle)).multiplyScalar(wanderSpeed);
       }
     }
 
     monster.mesh.position.addScaledVector(monster.velocity, delta);
 
-    if (distance < 2.2) {
-      player.health = Math.max(0, player.health - 18 * delta);
+    // 몬스터 크기에 따른 공격 범위와 데미지 조정
+    const attackRange = 1.8 + monsterScale * 0.5;
+    if (distance < attackRange) {
+      const damage = 15 + (monsterScale - 0.8) * 10; // 큰 몬스터는 더 아픔
+      player.health = Math.max(0, player.health - damage * delta);
       healthEl.textContent = Math.round(player.health).toString();
     }
   });

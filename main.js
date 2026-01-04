@@ -335,7 +335,16 @@ function createMonster() {
   const randomScale = 0.6 + Math.random() * 0.9;
   group.scale.setScalar(randomScale);
   
-  return { mesh: group, velocity: new THREE.Vector3(), scale: randomScale };
+  return { 
+    mesh: group, 
+    velocity: new THREE.Vector3(), 
+    scale: randomScale,
+    isAggressive: false,
+    body: body,
+    head: head,
+    leftEye: leftEye,
+    rightEye: rightEye
+  };
 }
 
 function spawnMonsters() {
@@ -403,6 +412,33 @@ function updateMonsters(delta) {
     const pos = new THREE.Vector3(monster.mesh.position.x, 0, monster.mesh.position.z);
     const distance = pos.distanceTo(target);
     const monsterScale = monster.scale || 1.0;
+
+    // 플레이어 감지 시 위협적인 자세로 변경
+    const detectionRange = 20;
+    const wasAggressive = monster.isAggressive;
+    monster.isAggressive = distance < detectionRange;
+
+    if (monster.isAggressive && !wasAggressive) {
+      // 위협적인 자세로 변경: 몸통을 앞으로 기울이고 머리를 낮춤
+      monster.body.rotation.x = -0.2; // 몸통을 앞으로 기울임
+      monster.head.position.y = 0.7; // 머리를 낮춤
+      
+      // 눈을 더 밝게 빛나게 함
+      monster.leftEye.material.emissive.setHex(0x660000);
+      monster.rightEye.material.emissive.setHex(0x660000);
+      monster.leftEye.material.color.setHex(0xff6666);
+      monster.rightEye.material.color.setHex(0xff6666);
+    } else if (!monster.isAggressive && wasAggressive) {
+      // 평상시 자세로 복귀
+      monster.body.rotation.x = 0;
+      monster.head.position.y = 0.9;
+      
+      // 눈 밝기를 원래대로
+      monster.leftEye.material.emissive.setHex(0x220000);
+      monster.rightEye.material.emissive.setHex(0x220000);
+      monster.leftEye.material.color.setHex(0xff4444);
+      monster.rightEye.material.color.setHex(0xff4444);
+    }
 
     if (distance < 24) {
       // 큰 몬스터일수록 빠르고, 작은 몬스터는 느리게

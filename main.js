@@ -284,10 +284,25 @@ const monsterCount = 10;
 function createMonster() {
   const group = new THREE.Group();
   
+  // 랜덤 색상 변화 (갈색, 회색, 검은색 계열)
+  const colorVariations = [
+    { main: 0x8d4a2b, dark: 0x5a2f1a, emissive: 0x2a140c }, // 갈색
+    { main: 0x6d6d6d, dark: 0x4a4a4a, emissive: 0x1a1a1a }, // 회색
+    { main: 0x4a2c2c, dark: 0x2d1a1a, emissive: 0x150c0c }, // 어두운 갈색
+    { main: 0x8d1b1b, dark: 0x6d1515, emissive: 0x3a0808 }, // 빨간색 (원래)
+    { main: 0x2c4a2c, dark: 0x1a2d1a, emissive: 0x0c150c }  // 어두운 녹색
+  ];
+  const colorScheme = colorVariations[Math.floor(Math.random() * colorVariations.length)];
+  
   // 몸통 (body)
   const body = new THREE.Mesh(
     new THREE.CapsuleGeometry(0.4, 1.2, 4, 8),
-    new THREE.MeshStandardMaterial({ color: 0x8d1b1b, emissive: 0x3a0808 })
+    new THREE.MeshStandardMaterial({ 
+      color: colorScheme.main, 
+      emissive: colorScheme.emissive,
+      roughness: 0.8,
+      metalness: 0.1
+    })
   );
   body.position.set(0, 0.8, 0);
   body.rotation.z = Math.PI / 2; // 몸통을 가로로 눕힘
@@ -295,35 +310,55 @@ function createMonster() {
   // 머리 (head)
   const head = new THREE.Mesh(
     new THREE.SphereGeometry(0.35, 8, 8),
-    new THREE.MeshStandardMaterial({ color: 0xa52525, emissive: 0x4a0a0a })
+    new THREE.MeshStandardMaterial({ 
+      color: colorScheme.main * 1.1, 
+      emissive: colorScheme.emissive,
+      roughness: 0.7,
+      metalness: 0.05
+    })
   );
   head.position.set(0.8, 0.9, 0);
   
   // 눈 (eyes)
   const eyeGeometry = new THREE.SphereGeometry(0.08, 6, 6);
-  const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0x220000 });
-  const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+  const eyeMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xff4444, 
+    emissive: 0x220000,
+    roughness: 0.3,
+    metalness: 0.2
+  });
+  const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial.clone());
   leftEye.position.set(1.0, 1.0, 0.15);
-  const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+  const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial.clone());
   rightEye.position.set(1.0, 1.0, -0.15);
   
   // 다리 (legs)
   const legGeometry = new THREE.CylinderGeometry(0.12, 0.15, 0.7, 6);
-  const legMaterial = new THREE.MeshStandardMaterial({ color: 0x6d1515, emissive: 0x2a0606 });
+  const legMaterial = new THREE.MeshStandardMaterial({ 
+    color: colorScheme.dark, 
+    emissive: colorScheme.emissive,
+    roughness: 0.9,
+    metalness: 0.0
+  });
   
-  const frontLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+  const frontLeftLeg = new THREE.Mesh(legGeometry, legMaterial.clone());
   frontLeftLeg.position.set(0.4, 0.35, 0.3);
-  const frontRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+  const frontRightLeg = new THREE.Mesh(legGeometry, legMaterial.clone());
   frontRightLeg.position.set(0.4, 0.35, -0.3);
-  const backLeftLeg = new THREE.Mesh(legGeometry, legMaterial);
+  const backLeftLeg = new THREE.Mesh(legGeometry, legMaterial.clone());
   backLeftLeg.position.set(-0.4, 0.35, 0.3);
-  const backRightLeg = new THREE.Mesh(legGeometry, legMaterial);
+  const backRightLeg = new THREE.Mesh(legGeometry, legMaterial.clone());
   backRightLeg.position.set(-0.4, 0.35, -0.3);
   
   // 꼬리 (tail)
   const tail = new THREE.Mesh(
     new THREE.ConeGeometry(0.1, 0.8, 6),
-    new THREE.MeshStandardMaterial({ color: 0x7d1a1a, emissive: 0x350707 })
+    new THREE.MeshStandardMaterial({ 
+      color: colorScheme.main * 0.9, 
+      emissive: colorScheme.emissive,
+      roughness: 0.8,
+      metalness: 0.05
+    })
   );
   tail.position.set(-0.9, 0.8, 0);
   tail.rotation.z = Math.PI / 2; // 꼬리를 뒤쪽으로 향하게 함

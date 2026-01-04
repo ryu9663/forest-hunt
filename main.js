@@ -378,7 +378,10 @@ function createMonster() {
     body: body,
     head: head,
     leftEye: leftEye,
-    rightEye: rightEye
+    rightEye: rightEye,
+    tail: tail,
+    legs: [frontLeftLeg, frontRightLeg, backLeftLeg, backRightLeg],
+    animationTime: Math.random() * Math.PI * 2 // 각 몬스터마다 다른 시작 시간
   };
 }
 
@@ -448,6 +451,9 @@ function updateMonsters(delta) {
     const distance = pos.distanceTo(target);
     const monsterScale = monster.scale || 1.0;
 
+    // 애니메이션 시간 업데이트
+    monster.animationTime += delta;
+
     // 플레이어 감지 시 위협적인 자세로 변경
     const detectionRange = 20;
     const wasAggressive = monster.isAggressive;
@@ -473,6 +479,40 @@ function updateMonsters(delta) {
       monster.rightEye.material.emissive.setHex(0x220000);
       monster.leftEye.material.color.setHex(0xff4444);
       monster.rightEye.material.color.setHex(0xff4444);
+    }
+
+    // 애니메이션 효과들
+    const time = monster.animationTime;
+    const isMoving = monster.velocity.length() > 0.1;
+    
+    // 호흡 효과: 몸통이 천천히 위아래로 움직임
+    const breathingOffset = Math.sin(time * 1.5) * 0.02;
+    monster.body.position.y = 0.8 + breathingOffset;
+    
+    // 꼬리 흔들기 애니메이션
+    const tailSwing = Math.sin(time * 2.5) * 0.3;
+    monster.tail.rotation.y = tailSwing;
+    
+    // 걷기 애니메이션: 움직일 때만 다리가 움직임
+    if (isMoving) {
+      const walkCycle = time * 6; // 빠른 걷기
+      monster.legs[0].rotation.x = Math.sin(walkCycle) * 0.4; // 앞 왼쪽
+      monster.legs[1].rotation.x = Math.sin(walkCycle + Math.PI) * 0.4; // 앞 오른쪽
+      monster.legs[2].rotation.x = Math.sin(walkCycle + Math.PI) * 0.4; // 뒤 왼쪽
+      monster.legs[3].rotation.x = Math.sin(walkCycle) * 0.4; // 뒤 오른쪽
+    } else {
+      // 정지 시 다리를 원래 위치로
+      monster.legs.forEach(leg => {
+        leg.rotation.x *= 0.9; // 부드럽게 복귀
+      });
+    }
+    
+    // 머리 미세한 움직임 (호기심 표현)
+    if (!monster.isAggressive) {
+      const headBob = Math.sin(time * 0.8) * 0.05;
+      monster.head.rotation.y = headBob;
+    } else {
+      monster.head.rotation.y = 0; // 위협적일 때는 똑바로
     }
 
     if (distance < 24) {

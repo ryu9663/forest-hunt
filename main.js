@@ -114,6 +114,50 @@ function placeOnGround(mesh, x, z) {
   mesh.position.set(x, 0, z);
 }
 
+// 충돌 감지 함수들
+function isInRiver(x, z) {
+  const riverX = riverCenterX(z);
+  return Math.abs(x - riverX) < world.riverWidth * 0.6;
+}
+
+function checkCollisionWithObjects(x, z, radius = 1.0) {
+  // 나무와의 충돌 체크
+  for (let tree of trees.children) {
+    const dx = x - tree.position.x;
+    const dz = z - tree.position.z;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+    if (distance < radius + 1.5) { // 나무 충돌 반경
+      return true;
+    }
+  }
+  
+  // 바위와의 충돌 체크
+  for (let rock of rocks.children) {
+    const dx = x - rock.position.x;
+    const dz = z - rock.position.z;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+    if (distance < radius + 1.2) { // 바위 충돌 반경
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+function checkCollisionWithMonsters(x, z, radius = 1.0, excludeMonster = null) {
+  for (let monster of monsters) {
+    if (monster === excludeMonster) continue;
+    const dx = x - monster.mesh.position.x;
+    const dz = z - monster.mesh.position.z;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+    const monsterRadius = (monster.scale || 1.0) * 0.8;
+    if (distance < radius + monsterRadius) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function createTree() {
   const group = new THREE.Group();
   const trunk = new THREE.Mesh(
@@ -216,12 +260,24 @@ function updateMovement(delta) {
 
   if (direction.lengthSq() > 0) {
     direction.normalize();
-    player.velocity.copy(direction.multiplyScalar(player.speed));
-  } else {
-    player.velocity.set(0, 0, 0);
+    
+    // 다음 위치 계산
+    const newPos = new THREE.Vector3().copy(camera.position);
+    const velocity = direction.clone().multiplyScalar(player.speed);
+    
+    // 강 안에 있는지 체크하고 속도 조정
+    if (isInRiver(newPos.x, newPos.z)) {
+      velocity.multiplyScalar(0.4); // 강에서는 40% 속도로 느려짐
+    }
+    
+    newPos.addScaledVector(velocity, delta);
+    
+    // 충돌 체크
+    if (!checkCollisionWithObjects(newPos.x, newPos.z, 0.8)) {
+      camera.position.copy(newPos);
+    }
   }
 
-  camera.position.addScaledVector(player.velocity, delta);
   camera.position.y = 1.7;
 }
 
@@ -528,7 +584,34 @@ function updateMonsters(delta) {
       }
     }
 
-    monster.mesh.position.addScaledVector(monster.velocity, delta);
+    // 몬스터 이동 처리 (충돌 및 강 체크 포함)
+    if (monster.velocity.length() > 0.01) {
+      const newPos = new THREE.Vector3().copy(monster.mesh.position);
+      let adjustedVelocity = monster.velocity.clone();
+      
+      // 강 안에 있으면 속도 감소
+      if (isInRiver(newPos.x, newPos.z)) {
+        adjustedVelocity.multiplyScalar(0.5); // 몬스터는 강에서 50% 속도로 느려짐
+      }
+      
+      newPos.addScaledVector(adjustedVelocity, delta);
+      
+      // 충돌 체크 (나무, 바위, 다른 몬스터와)
+      const monsterRadius = monsterScale * 0.8;
+      if (!checkCollisionWithObjects(newPos.x, newPos.z, monsterRadius) && 
+          !checkCollisionWithMonsters(newPos.x, newPos.z, monsterRadius, monster)) {
+        monster.mesh.position.copy(newPos);
+      } else {
+        // 충돌 시 방향 변경
+        if (Math.random() < 0.5) {
+          monster.velocity.multiplyScalar(-0.5);
+        } else {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = monster.velocity.length() * 0.5;
+          monster.velocity.set(Math.cos(angle) * speed, 0, Math.sin(angle) * speed);
+        }
+      }
+    }
 
     // 몬스터 크기에 따른 공격 범위와 데미지 조정
     const attackRange = 1.8 + monsterScale * 0.5;
